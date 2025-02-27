@@ -40,6 +40,44 @@ function App() {
     setCurrentPage(1);
   }, [selectedCategory, searchTerm]);
 
+  // 添加这个辅助函数来生成页码数组
+  const getPageNumbers = (currentPage: number, totalPages: number) => {
+    const delta = 2; // 当前页码前后显示的页数
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    // 始终显示第一页
+    range.push(1);
+
+    // 计算需要显示的页码
+    for (let i = currentPage - delta; i <= currentPage + delta; i++) {
+      if (i > 1 && i < totalPages) {
+        range.push(i);
+      }
+    }
+
+    // 始终显示最后一页
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    // 添加省略号
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
   return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -64,7 +102,7 @@ function App() {
                 </svg>
                 <h1 className="text-2xl font-bold text-gray-900">AI Tools Hub</h1>
               </div>
-              <div className="w-full sm:w-auto">
+              <div className="w-full sm:w-auto relative">
                 <input
                     type="text"
                     placeholder="Search tools..."
@@ -72,7 +110,7 @@ function App() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"/>
+                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"/>
               </div>
             </div>
           </div>
@@ -190,17 +228,20 @@ function App() {
                 </button>
 
                 <div className="flex items-center space-x-1">
-                  {[...Array(totalPages)].map((_, index) => (
+                  {getPageNumbers(currentPage, totalPages).map((pageNum, index) => (
                       <button
                           key={index}
-                          onClick={() => handlePageChange(index + 1)}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              currentPage === index + 1
+                          onClick={() => typeof pageNum === 'number' ? handlePageChange(pageNum) : null}
+                          disabled={pageNum === '...'}
+                          className={`min-w-[2rem] h-8 sm:min-w-[2.5rem] sm:h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              pageNum === currentPage
                                   ? 'bg-blue-600 text-white transform scale-105'
+                                  : pageNum === '...'
+                                  ? 'bg-transparent text-gray-600 cursor-default hover:bg-transparent'
                                   : 'bg-white text-gray-600 hover:bg-gray-100'
                           }`}
                       >
-                        {index + 1}
+                        {pageNum}
                       </button>
                   ))}
                 </div>
